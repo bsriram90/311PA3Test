@@ -12,16 +12,16 @@
 Total Points - 500
 1. Report - 50 points
 2. MinCostVC - 150 points
-  1. Any Iterative Solution - 50 points
-  2. Accurate minCostVC (10 tests) - 50 points
-  3. Efficient Runtime - 50 points
+    1. Any Iterative Solution - 50 points
+    2. Accurate minCostVC (10 tests) - 50 points
+    3. Efficient Runtime - 50 points
 3. StringAlignment - 150 points
-  1. Any Iterative Solution - 50 points
-  2. Accurate StringAlignment (10 tests) - 50 points
-  3. Efficient Runtime - 50 points
+    1. Any Iterative Solution - 50 points
+    2. Accurate StringAlignment (10 tests) - 50 points
+    3. Efficient Runtime - 50 points
 4. ImageProcessor - 150 points
-  1. Any Iterative Solution - 50 points
-  2. Image width reduced properly(4 tests) - 100 points
+    1. Any Iterative Solution - 50 points
+    2. Image width reduced properly(4 tests) - 100 points
 
 Here are grades that should be calulated or adjusted manually
 ### Report
