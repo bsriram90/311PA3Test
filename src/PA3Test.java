@@ -37,7 +37,7 @@ public class PA3Test extends TestCase {
 
     static StringBuilder commentsBuilder = new StringBuilder("");
     static String inputDirectory = projectDirectory + "/input/";
-    static float totalPoints = 400;
+    static float totalPoints = 300;
     static HashMap<String,Integer> pointsDirectory = new HashMap<>();
 
     public static final String INVALID_CUT = "invalidCut";
@@ -47,15 +47,19 @@ public class PA3Test extends TestCase {
     public static final String INVALID_ALIGNMENT = "invalidAlignment";
     public static final String INCORRECT_ALIGNMENT = "incorrectAlignment";
     public static final String EXCEPTION_ALIGNMENT = "exceptionAlignment";
+    public static final String ALIGNMENT_BAD_RUNTIME = "alignmentBadRuntime";
+    public static final String EXCEPTION_IMAGE_PROCESSOR = "exceptionImageProcessor";
 
     static {
-        pointsDirectory.put(INVALID_CUT, 10);
-        pointsDirectory.put(EXCEPTION_CUT, 10);
-        pointsDirectory.put(VALID_INCORRECT_CUT, 10);
-        pointsDirectory.put(MIN_COST_BAD_RUNTIME, 10);
-        pointsDirectory.put(INVALID_ALIGNMENT, 10);
-        pointsDirectory.put(INCORRECT_ALIGNMENT, 10);
-        pointsDirectory.put(EXCEPTION_ALIGNMENT, 10);
+        pointsDirectory.put(INVALID_CUT, 5);
+        pointsDirectory.put(EXCEPTION_CUT, 5);
+        pointsDirectory.put(VALID_INCORRECT_CUT, 5);
+        pointsDirectory.put(MIN_COST_BAD_RUNTIME, 50);
+        pointsDirectory.put(INVALID_ALIGNMENT, 5);
+        pointsDirectory.put(INCORRECT_ALIGNMENT, 5);
+        pointsDirectory.put(EXCEPTION_ALIGNMENT, 5);
+        pointsDirectory.put(ALIGNMENT_BAD_RUNTIME, 50);
+        pointsDirectory.put(EXCEPTION_IMAGE_PROCESSOR, 25);
     }
 
     private void checkMinCostVC(int expectedMinCost, int[][] matrix, String testName) {
@@ -97,8 +101,8 @@ public class PA3Test extends TestCase {
     }
 
     private boolean isValidCut(ArrayList<Integer> cut, int[][] matrix) {
-        int colSize = matrix.length;
-        int rowSize = matrix[0].length;
+        int rowSize = matrix.length;
+        int colSize = matrix[0].length;
         // if the cut has an odd length, then it cannot have pairs of points
         if(cut.size()%2 != 0) return false;
         // we put all points in a TreeMap in case it is not returned in row order
@@ -123,6 +127,7 @@ public class PA3Test extends TestCase {
             if(prevY > 0 && !((y == prevY) || (y == prevY - 1) || y == (prevY + 1))) {
                 return false;
             }
+            prevY = y;
         }
         return true;
     }
@@ -145,6 +150,7 @@ public class PA3Test extends TestCase {
                     matrix[i][j] = Integer.parseInt(row[j]);
                 }
             }
+            reader.close();
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(2);
@@ -178,7 +184,7 @@ public class PA3Test extends TestCase {
 
     @Test
     public void testMinCostVC4() {
-        int expectedMinCost = 109;
+        int expectedMinCost = 110;
         int[][] matrix = get2DMatrixFromFile(inputDirectory + "matrix-4.txt");
         String testName = "testMinCostVC4";
         checkMinCostVC(expectedMinCost, matrix, testName);
@@ -194,8 +200,7 @@ public class PA3Test extends TestCase {
 
     @Test
     public void testMinCostVC6() {
-        // TODO calculate and update min cost
-        int expectedMinCost = 35;
+        int expectedMinCost = 159;
         int[][] matrix = get2DMatrixFromFile(inputDirectory + "matrix-6.txt");
         String testName = "testMinCostVC6";
         checkMinCostVC(expectedMinCost, matrix, testName);
@@ -203,17 +208,15 @@ public class PA3Test extends TestCase {
 
     @Test
     public void testMinCostVC7() {
-        // TODO calculate and update min cost
-        int expectedMinCost = 35;
-        int[][] matrix = get2DMatrixFromFile(inputDirectory + "matrix-6.txt");
+        int expectedMinCost = 222;
+        int[][] matrix = get2DMatrixFromFile(inputDirectory + "matrix-7.txt");
         String testName = "testMinCostVC7";
         checkMinCostVC(expectedMinCost, matrix, testName);
     }
 
     @Test
     public void testMinCostVC8() {
-        // TODO calculate and update min cost
-        int expectedMinCost = 35;
+        int expectedMinCost = 162;
         int[][] matrix = get2DMatrixFromFile(inputDirectory + "matrix-8.txt");
         String testName = "testMinCostVC8";
         checkMinCostVC(expectedMinCost, matrix, testName);
@@ -221,8 +224,7 @@ public class PA3Test extends TestCase {
 
     @Test
     public void testMinCostVC9() {
-        // TODO calculate and update min cost
-        int expectedMinCost = 35;
+        int expectedMinCost = 213;
         int[][] matrix = get2DMatrixFromFile(inputDirectory + "matrix-9.txt");
         String testName = "testMinCostVC9";
         checkMinCostVC(expectedMinCost, matrix, testName);
@@ -230,8 +232,7 @@ public class PA3Test extends TestCase {
 
     @Test
     public void testMinCostVC10() {
-        // TODO calculate and update min cost
-        int expectedMinCost = 35;
+        int expectedMinCost = 191;
         int[][] matrix = get2DMatrixFromFile(inputDirectory + "matrix-10.txt");
         String testName = "testMinCostVC10";
         checkMinCostVC(expectedMinCost, matrix, testName);
@@ -247,7 +248,7 @@ public class PA3Test extends TestCase {
             service.shutdown();
         } catch(Exception e) {
             updatePoints(pointsDirectory.get(MIN_COST_BAD_RUNTIME),"minCostVC was too slow for large matrix");
-            Assert.fail("Program too slow");
+            Assert.fail();
         }
     }
 
@@ -255,8 +256,8 @@ public class PA3Test extends TestCase {
         try {
             String z = DynamicProgramming.stringAlignment(x,y);
             Integer maxLength = x.length() > y.length() ? x.length() : y.length();
-            String smallerString = x.length() > y.length() ? y : x;
-            String largerString = x.length() > y.length() ? x : y;
+            String smallerString = x.length() >= y.length() ? y : x;
+            String largerString = x.length() >= y.length() ? x : y;
             if(!isAlignmentValid(z,smallerString,maxLength)) {
                 updatePoints(pointsDirectory.get(INVALID_ALIGNMENT), "stringAlignment() returned an invalid alignment for inputs x = " + x + " , y = " + y + " ");
                 Assert.fail();
@@ -287,31 +288,146 @@ public class PA3Test extends TestCase {
         if(z.length() != maxLength) {
             return false;
         }
-        int indexZ = 0;
-        int indexY = 0;
-        // the aligned string must be made of the smaller string with $'s inserted
-        while(indexY < y.length() && indexZ < z.length()) {
-            if(y.charAt(indexY) == z.charAt(indexZ)) {
-                indexY++;
-            } else if (z.charAt(indexZ) == '$') {
-                indexZ++;
-            } else {
-                return false;
-            }
-        }
-        if(indexY == y.length() && indexZ == z.length()) {
-            return true;
-        } else {
-            return false;
-        }
+        String deAligned = z.replaceAll("\\$","");
+        return deAligned.equals(y);
     }
 
     @Test
     public void testStringAlign1() {
-        String x = "abcdef";
-        String y = "a";
+        String x = "ABC";
+        String y = "DEF";
+        Integer expectedCost = 6;
+        checkStringAlignment(x, y, expectedCost);
+    }
+
+    @Test
+    public void testStringAlign2() {
+        String x = "ABCDEF";
+        String y = "X";
+        Integer expectedCost = 22;
+        checkStringAlignment(x, y, expectedCost);
+    }
+
+    @Test
+    public void testStringAlign3() {
+        String x = "ABCDEF";
+        String y = "A";
         Integer expectedCost = 20;
         checkStringAlignment(x, y, expectedCost);
+    }
+
+    @Test
+    public void testStringAlign4() {
+        String x = "ACBTACGT";
+        String y = "ACGT";
+        Integer expectedCost = 16;
+        checkStringAlignment(x, y, expectedCost);
+    }
+
+    @Test
+    public void testStringAlign5() {
+        String x = "AACAGTTACC";
+        String y = "TAAGGTCA";
+        Integer expectedCost = 14;
+        checkStringAlignment(x, y, expectedCost);
+    }
+
+    @Test
+    public void testStringAlign6() {
+        String x = "ACTACT";
+        String y = "ACGT";
+        Integer expectedCost = 10;
+        checkStringAlignment(x, y, expectedCost);
+    }
+
+    @Test
+    public void testStringAlign7() {
+        String x = "ATEAXYCXE";
+        String y = "ABCDE";
+        Integer expectedCost = 20;
+        checkStringAlignment(x, y, expectedCost);
+    }
+
+    @Test
+    public void testStringAlign8() {
+        String x = "ABCDE";
+        String y = "AEDC";
+        Integer expectedCost = 8;
+        checkStringAlignment(x, y, expectedCost);
+    }
+
+    @Test
+    public void testStringAlign9() {
+        String x = "ADGKLPX";
+        String y = "DAGKPX";
+        Integer expectedCost = 8;
+        checkStringAlignment(x, y, expectedCost);
+    }
+
+    @Test
+    public void testStringAlign10() {
+        String x = "ABCDEF";
+        String y = "XYZ";
+        Integer expectedCost = 18;
+        checkStringAlignment(x, y, expectedCost);
+    }
+
+    @Test
+    public void testStringAlignmentRunTime() {
+        try {
+            // we create a new thread and interrupt it if it runs more than the allowed time
+            final ExecutorService service = Executors.newSingleThreadExecutor();
+            final Future<?> f = service.submit(new TimedBoundStringAlignmentTestingService());
+            f.get(TIMEOUT_MINUTES, TimeUnit.MINUTES);
+            service.shutdown();
+        } catch(Exception e) {
+            updatePoints(pointsDirectory.get(ALIGNMENT_BAD_RUNTIME),"StringAlignment was too slow for large strings");
+            Assert.fail();
+        }
+    }
+
+    private void reduceWidthAndDisplayImage(String fileName, double trimWidth, String test) {
+        try {
+            ImageProcessor imageProcessor = new ImageProcessor(fileName);
+            Picture pic = imageProcessor.reduceWidth(trimWidth);
+            pic.show();
+            pic.save(test + ".png");
+        } catch (Exception e) {
+            updatePoints(pointsDirectory.get(EXCEPTION_IMAGE_PROCESSOR),"Exception testing ImageProcessor. Exception - " + e.getClass().getCanonicalName());
+            Assert.fail();
+        }
+    }
+
+    @Test
+    public void testGraphProcessor1() {
+        String fileName = inputDirectory + "FirstPic.png";
+        double trimWidth = 0.85;
+        String test = "testGraphProcessor1";
+        reduceWidthAndDisplayImage(fileName, trimWidth, test);
+    }
+
+    @Test
+    public void testGraphProcessor2() {
+        String fileName = inputDirectory + "secondPic.png";
+        double trimWidth = 0.85;
+        String test = "testGraphProcessor2";
+        reduceWidthAndDisplayImage(fileName, trimWidth, test);
+    }
+
+    @Test
+    public void testGraphProcessor3() {
+        String fileName = inputDirectory + "ThirdPic.png";
+        double trimWidth = 0.85;
+        String test = "testGraphProcessor3";
+        reduceWidthAndDisplayImage(fileName, trimWidth, test);
+    }
+
+    @Test
+    public void testGraphProcessor4() {
+        String fileName = inputDirectory + "FourthPic.png";
+        double trimWidth = 0.85;
+        String test = "testGraphProcessor4";
+        reduceWidthAndDisplayImage(fileName, trimWidth, test);
     }
 
     @AfterClass
@@ -335,20 +451,24 @@ public class PA3Test extends TestCase {
             try {
                 Long refTime = 0l;
                 Long subTime = 0l;
-                int[][] matrix = get2DMatrixFromFile(inputDirectory + "largematrix-1.txt");
-                timeForMatrix(refTime, subTime, matrix);
+                int[][] matrix = generate2DMatrix(10000);
+                subTime += timeForMinCostVC(matrix);
+                refTime += timeForRefMinCostVC(matrix);
                 matrix = null;
                 System.gc();
-                matrix = get2DMatrixFromFile(inputDirectory + "largematrix-2.txt");
-                timeForMatrix(refTime, subTime, matrix);
+                matrix = generate2DMatrix(10000);
+                subTime += timeForMinCostVC(matrix);
+                refTime += timeForRefMinCostVC(matrix);
                 matrix = null;
                 System.gc();
-                matrix = get2DMatrixFromFile(inputDirectory + "largematrix-3.txt");
-                timeForMatrix(refTime, subTime, matrix);
+                matrix = generate2DMatrix(10000);
+                subTime += timeForMinCostVC(matrix);
+                refTime += timeForRefMinCostVC(matrix);
                 matrix = null;
                 System.gc();
                 Double avgRef = (double)refTime/3.0;
                 Double avgSub = (double)subTime/3.0;
+                System.out.println("MinCostVC - " + avgRef + ", " + avgSub);
                 if(avgSub > (avgRef * 3)) {
                     updatePoints(pointsDirectory.get(MIN_COST_BAD_RUNTIME), "MinCostVC was too slow");
                     Assert.fail();
@@ -359,14 +479,92 @@ public class PA3Test extends TestCase {
             }
         }
 
-        private void timeForMatrix(Long refTime, Long subTime, int[][] matrix) {
+        private int[][] generate2DMatrix(int size) {
+            int[][] matrix = new int[size][size];
+            for(int i=0; i<size; i++) {
+                for(int j=0; j<size; j++) {
+                    matrix[i][j] = (int)(Math.random() * 100);
+                }
+            }
+            return matrix;
+        }
+
+        private long timeForRefMinCostVC(int[][] matrix) {
             long time1 = System.currentTimeMillis();
             RefDynamicProgramming.minCostVC(matrix);
             long time2 = System.currentTimeMillis();
+            return time2 - time1;
+        }
+
+        private long timeForMinCostVC(int[][] matrix) {
+            long time1 = System.currentTimeMillis();
             DynamicProgramming.minCostVC(matrix);
-            long time3 = System.currentTimeMillis();
-            refTime += time2 - time1;
-            subTime += time3 - time2;
+            long time2 = System.currentTimeMillis();
+            return time2 - time1;
+        }
+
+    }
+
+    class TimedBoundStringAlignmentTestingService implements Runnable {
+
+        public void run() {
+            try {
+                Long refTime = 0l;
+                Long subTime = 0l;
+                String[] a = getStringsFromFile(inputDirectory + "largeString-1.txt");
+                subTime += timeForStringAlignment(a);
+                refTime += timeForRefStringAlignment(a);
+                a = null;
+                System.gc();
+                a = getStringsFromFile(inputDirectory + "largeString-2.txt");
+                subTime += timeForStringAlignment(a);
+                refTime += timeForRefStringAlignment(a);
+                a = null;
+                System.gc();
+                a = getStringsFromFile(inputDirectory + "largeString-3.txt");
+                subTime += timeForStringAlignment(a);
+                refTime += timeForRefStringAlignment(a);
+                a = null;
+                System.gc();
+                Double avgRef = (double)refTime/3.0;
+                Double avgSub = (double)subTime/3.0;
+                System.out.println("String Alignment - " + avgRef + ", " + avgSub);
+                if(avgSub > (avgRef * 3)) {
+                    updatePoints(pointsDirectory.get(ALIGNMENT_BAD_RUNTIME), "StringAlignment() was too slow");
+                    Assert.fail();
+                }
+            } catch (Exception e) {
+                updatePoints(pointsDirectory.get(ALIGNMENT_BAD_RUNTIME), "Exception when timing StringAlignment runtime. Exception - " + e.getClass().getCanonicalName());
+                Assert.fail();
+            }
+        }
+
+        private long timeForRefStringAlignment(String[] a) {
+            long time1 = System.currentTimeMillis();
+            RefDynamicProgramming.stringAlignment(a[0],a[1]);
+            long time2 = System.currentTimeMillis();
+            return time2 - time1;
+        }
+
+        private long timeForStringAlignment(String[] a) {
+            long time1 = System.currentTimeMillis();
+            DynamicProgramming.stringAlignment(a[0],a[1]);
+            long time2 = System.currentTimeMillis();
+            return time2 - time1;
+        }
+
+        private String[] getStringsFromFile(String fileName) {
+            String[] lines = new String[2];
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(fileName));
+                lines[0] = reader.readLine();
+                lines[1] = reader.readLine();
+                reader.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(2);
+            }
+            return lines;
         }
 
     }
